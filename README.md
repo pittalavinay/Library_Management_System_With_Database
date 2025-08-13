@@ -1,95 +1,154 @@
-# Library Management System
+# Library Management System (Java)
 
-A pure Java console-based Library Management System that manages books, members, and borrowing operations. This project demonstrates clean architecture principles with comprehensive testing capabilities and **100% test success rate**.
+## Objective
 
-## Features
+You will create a comprehensive Library Management System in Java. You are expected to use AI tools (like ChatGPT, GitHub Copilot, or others) to:
+1. Write the initial code structure.
+2. Identify and fix any bugs in your program.
+3. Refactor the code to improve performance, readability, and maintainability.
+4. Write unit tests for important functions.
+5. Generate documentation for your code (class/method descriptions).
 
-### Book Management
-- Add, update, delete books
-- Search books by title, author, or genre
-- View all books and their availability status
-- Track total and available copies
-- Manage book borrowing and returns
+## Requirements
 
-### Member Management
-- Register new members
-- Update member details
-- View member list
-- Manage membership status (ACTIVE, SUSPENDED, EXPIRED)
-- Track borrowing limits and member validation
+### Core Classes:
 
-### Borrowing Management
-- Issue books to members
-- Return books and calculate fines
-- View borrowed books per member
-- Track due dates and overdue books
-- Automatic fine calculation for overdue items
+#### Class Name: Book
+**Data Members:**
+- `isbn` (String) - International Standard Book Number
+- `title` (String) - Book title
+- `author` (String) - Book author
+- `publisher` (String) - Book publisher
+- `publicationYear` (int) - Year of publication
+- `genre` (String) - Book genre/category
+- `totalCopies` (int) - Total number of copies
+- `availableCopies` (int) - Number of available copies
 
-### Reports
-- Library statistics
-- List overdue books
-- List all books currently borrowed
-- Detailed borrowing reports
+**Member Functions:**
+1. Constructor — to initialize book details.
+2. `borrow()` — decreases available copies if copies are available.
+3. `returnBook()` — increases available copies.
+4. `getAvailableCopies()` — returns the current available copies.
+5. `getTotalCopies()` — returns the total number of copies.
+6. `displayBookDetails()` — prints book information.
 
-## Prerequisites
+#### Class Name: Member
+**Data Members:**
+- `memberId` (String) - Unique member identifier
+- `name` (String) - Member's full name
+- `email` (String) - Member's email address
+- `phone` (String) - Member's phone number
+- `joinDate` (LocalDate) - Date when member joined
+- `isActive` (boolean) - Member's active status
 
-- Java 11 or higher
-- MySQL Server (optional - tests run in demo mode without database)
+**Member Functions:**
+1. Constructor — to initialize member details.
+2. `isValidEmail(String email)` — validates email format.
+3. `isValidPhone(String phone)` — validates phone number format.
+4. `isValidMemberCode(String code)` — validates member code format.
+5. `displayMemberDetails()` — prints member information.
+
+#### Class Name: Borrowing
+**Data Members:**
+- `borrowingId` (String) - Unique borrowing identifier
+- `book` (Book) - Reference to borrowed book
+- `member` (Member) - Reference to borrowing member
+- `borrowDate` (LocalDate) - Date when book was borrowed
+- `dueDate` (LocalDate) - Date when book should be returned
+- `returnDate` (LocalDate) - Date when book was returned (null if not returned)
+
+**Member Functions:**
+1. Constructor — to initialize borrowing details.
+2. `isOverdue()` — checks if book is overdue.
+3. `getDaysOverdue()` — calculates days overdue.
+4. `returnBook(LocalDate returnDate)` — marks book as returned.
+5. `displayBorrowingDetails()` — prints borrowing information.
+
+## Tasks for Project
+
+### 1. Bug Fixing
+- Prevent borrowing when no copies are available.
+- Ensure book copies are not initialized with negative values.
+- Fix return book condition (available copies should not exceed total copies).
+- Validate member data (email, phone, member code formats).
+- Handle date validation for borrowing operations.
+
+### 2. Refactoring
+- Use proper encapsulation with getters and setters.
+- Add proper validation methods.
+- Improve code formatting and naming conventions.
+- Implement proper exception handling.
+- Add input validation for all user inputs.
+
+### 3. Unit Testing
+- Write comprehensive test cases for all classes.
+- Test edge cases and boundary conditions.
+- Test data validation methods.
+- Test business logic (borrowing, returning, overdue calculations).
+- Achieve high test coverage (aim for 90%+).
+
+### 4. Documentation
+- Use JavaDoc-style comments for all classes and methods.
+- Include parameter descriptions and return value documentation.
+- Add usage examples in documentation.
+- Document validation rules and business logic.
+
+### 5. AI Usage Evidence
+- Keep AI chat logs showing how you got help in:
+  - Code writing and structure design
+  - Debugging and error fixing
+  - Code refactoring and optimization
+  - Test case generation
+  - Documentation writing
 
 ## Project Structure
 
 ```
-src/
-├── main/
-│   └── java/com/library/
-│       ├── model/          # Entity classes (Book, Member, Borrowing)
-│       ├── dao/            # Data Access Objects
-│       ├── service/        # Business logic layer
-│       ├── ui/             # Console user interface
-│       ├── util/           # Utility classes
-│       └── Main.java       # Application entry point
-└── test/
-    └── java/com/library/
-        ├── model/           # JUnit-style test classes
-        │   ├── BookTest.java
-        │   ├── MemberTest.java
-        │   └── BorrowingTest.java
-        └── SimpleTestRunner.java  # Comprehensive test suite
+LibraryManagementSystem/
+├── src/
+│   ├── main/java/com/library/
+│   │   ├── model/
+│   │   │   ├── Book.java
+│   │   │   ├── Member.java
+│   │   │   └── Borrowing.java
+│   │   ├── dao/
+│   │   │   ├── BookDAO.java
+│   │   │   ├── MemberDAO.java
+│   │   │   └── BorrowingDAO.java
+│   │   ├── service/
+│   │   │   └── LibraryService.java
+│   │   └── Main.java
+│   └── test/java/com/library/
+│       ├── model/
+│       │   ├── BookTest.java
+│       │   ├── MemberTest.java
+│       │   └── BorrowingTest.java
+│       └── SimpleTestRunner.java
+├── README.md
+└── mysql-connector-j-9.4.0.jar
 ```
 
-## Architecture
+## Compilation and Execution
 
-The application follows a layered architecture:
+### Prerequisites
+- Java 11 or higher
+- MySQL (optional - for database operations)
 
-- **Model Layer**: Entity classes with business logic and validation
-- **DAO Layer**: Data Access Objects for database operations
-- **Service Layer**: Business logic and orchestration
-- **UI Layer**: Console-based user interface
-
-## Key Features
-
-- **Pure Java**: No external frameworks, only JDBC for database connectivity
-- **Transaction Management**: Proper commit/rollback handling
-- **Input Validation**: Comprehensive validation for all inputs
-- **Error Handling**: Graceful error handling and user feedback
-- **Comprehensive Testing**: Complete test suite covering all components
-- **Console Interface**: User-friendly menu-driven interface
-- **Demo Mode**: Tests run successfully without database connection
-- **Dual Test Framework**: Custom test runner + JUnit-style test classes
-
-## Running the Tests
-
-The project includes a comprehensive test suite that can run without external dependencies:
-
-### Compile the tests:
+### Compile the project:
 ```bash
 javac -cp "src/main/java;src/test/java" src/test/java/com/library/SimpleTestRunner.java
 javac -cp "src/main/java;src/test/java" src/test/java/com/library/model/*.java
 ```
 
-### Run the complete test suite:
+### Run the test suite:
 ```bash
 java -cp "src/main/java;src/test/java" com.library.SimpleTestRunner
+```
+
+### Compile and run the main application:
+```bash
+javac -cp "src/main/java;src/main/resources" src/main/java/com/library/Main.java
+java -cp "src/main/java;src/main/resources" com.library.Main
 ```
 
 ## Test Results ✅
@@ -103,75 +162,65 @@ java -cp "src/main/java;src/test/java" com.library.SimpleTestRunner
 - **Success Rate**: 100.0%
 
 ### Test Coverage:
-- **Model validation and business logic** - All validation rules tested
-- **Service layer operations** - Business logic thoroughly tested
-- **DAO operations** - Database operations with graceful error handling
-- **Edge cases and error handling** - Comprehensive error scenario testing
-- **Complete workflow testing** - End-to-end business processes
-- **Performance and scalability testing** - System behavior under load
-- **Data integrity validation** - Model-level validation rules
+- **Book Class**: 12/12 tests passed
+  - Constructor validation
+  - Borrow/return operations
+  - Copy management
+  - Data integrity
 
-### Test Categories:
-1. **Book Tests**: 11 tests covering creation, validation, borrowing, returns, and business logic
-2. **Member Tests**: 10 tests covering validation, status management, and business rules
-3. **Borrowing Tests**: 11 tests covering borrowing lifecycle, overdue calculations, and fine management
-4. **Integration Tests**: 16 tests covering service layer, DAO operations, and system workflows
+- **Member Class**: 12/12 tests passed
+  - Constructor validation
+  - Email validation
+  - Phone validation
+  - Member code validation
 
-## Database Setup (Optional)
+- **Borrowing Class**: 8/8 tests passed
+  - Constructor validation
+  - Overdue calculations
+  - Return operations
+  - Date handling
 
-If you want to run with a real database:
+## Features Implemented
 
-1. Install and start MySQL Server
-2. Create a database named `library_management`
-3. Update the database connection settings in `src/main/resources/database.properties`:
-   ```properties
-   db.url=jdbc:mysql://localhost:3306/library_management
-   db.username=your_username
-   db.password=your_password
-   db.driver=com.mysql.cj.jdbc.Driver
-   ```
+### Core Functionality
+- ✅ Book management (add, remove, update, search)
+- ✅ Member management (register, update, validate)
+- ✅ Borrowing operations (borrow, return, track overdue)
+- ✅ Data validation and integrity checks
+- ✅ Comprehensive error handling
 
-4. Run the SQL script `src/main/resources/schema.sql` to create the database schema and sample data.
+### Advanced Features
+- ✅ ISBN validation
+- ✅ Email and phone number validation
+- ✅ Member code format validation
+- ✅ Overdue calculation with date handling
+- ✅ Copy availability tracking
+- ✅ Business rule enforcement
 
-**Note**: The system works perfectly in demo mode without a database connection. All tests pass successfully in this configuration.
+### Testing Framework
+- ✅ Custom test runner for pure Java environment
+- ✅ JUnit-style test classes with reflection-based execution
+- ✅ Comprehensive test coverage for all classes
+- ✅ Edge case and boundary condition testing
+- ✅ Data validation testing
 
-## Running the Application
+## AI-Assisted Development Evidence
 
-### Compile the project:
-```bash
-javac -cp "src/main/java;src/main/resources" src/main/java/com/library/Main.java
-```
+This project demonstrates effective use of AI tools for:
+1. **Code Structure Design**: Initial class design and architecture
+2. **Bug Identification**: Finding and fixing validation issues
+3. **Test Case Generation**: Creating comprehensive test suites
+4. **Code Refactoring**: Improving readability and maintainability
+5. **Documentation**: Generating clear and comprehensive documentation
 
-### Run the application:
-```bash
-java -cp "src/main/java;src/main/resources" com.library.Main
-```
+## Learning Outcomes
 
-## Sample Data
-
-The application includes sample data for:
-- Multiple books with different genres and availability
-- Members with different statuses and borrowing limits
-- Borrowing records with due dates and fine calculations
-
-## Development Notes
-
-- **Pure Java Implementation**: No external dependencies required for core functionality
-- **Graceful Degradation**: System works without database connection (demo mode)
-- **Comprehensive Validation**: All inputs are validated at multiple levels
-- **Error Recovery**: Robust error handling throughout the application
-- **Test-Driven Development**: Full test coverage for all components
-- **Dual Testing Approach**: Custom test runner + JUnit-style test classes for maximum coverage
-- **Reflection-Based Testing**: Dynamic test discovery and execution without external frameworks
-
-## Recent Updates
-
-- ✅ **All test errors fixed** - 100% test success rate achieved
-- ✅ **JUnit-style test classes integrated** - Comprehensive model testing
-- ✅ **Custom test runner enhanced** - Supports both test frameworks
-- ✅ **Validation logic aligned** - Tests match actual model behavior
-- ✅ **Phone and member code validation** - Tests now correctly reflect validation rules
-
-## License
+Through this project, you will learn:
+- Object-oriented programming principles in Java
+- Data validation and business rule implementation
+- Unit testing and test-driven development
+- Code documentation and best practices
+- AI-assisted development workflows
+- Problem-solving and debugging techniques
 
 This project is for educational purposes and demonstrates best practices in Java application development, testing, and clean architecture.
