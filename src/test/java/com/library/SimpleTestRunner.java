@@ -611,24 +611,24 @@ public class SimpleTestRunner {
             
             // Test search operations (will return empty lists without database)
             try {
-                List<Book> books = libraryService.searchBooksByTitle("Performance");
-                assertNotNull(books, "Search results should not be null");
-                
-                List<Member> members = libraryService.searchMembersByName("Performance");
-                assertNotNull(members, "Member search results should not be null");
+            List<Book> books = libraryService.searchBooksByTitle("Performance");
+            assertNotNull(books, "Search results should not be null");
+            
+            List<Member> members = libraryService.searchMembersByName("Performance");
+            assertNotNull(members, "Member search results should not be null");
             } catch (Exception e) {
                 System.out.println("Note: Search operations skipped due to database connection issues");
             }
             
             // Test bulk operations (will return empty lists without database)
             try {
-                List<Book> allBooks = libraryService.getAllBooks();
-                List<Member> allMembers = libraryService.getAllMembers();
-                List<Borrowing> allBorrowings = libraryService.getAllBorrowingsWithDetails();
-                
-                assertNotNull(allBooks, "All books should not be null");
-                assertNotNull(allMembers, "All members should not be null");
-                assertNotNull(allBorrowings, "All borrowings should not be null");
+            List<Book> allBooks = libraryService.getAllBooks();
+            List<Member> allMembers = libraryService.getAllMembers();
+            List<Borrowing> allBorrowings = libraryService.getAllBorrowingsWithDetails();
+            
+            assertNotNull(allBooks, "All books should not be null");
+            assertNotNull(allMembers, "All members should not be null");
+            assertNotNull(allBorrowings, "All borrowings should not be null");
             } catch (Exception e) {
                 System.out.println("Note: Bulk operations skipped due to database connection issues");
             }
@@ -652,22 +652,22 @@ public class SimpleTestRunner {
             
             // Verify core functionality (will return empty lists without database)
             try {
-                assertNotNull(libraryService.getAllBooks(), "LibraryService.getAllBooks should not return null");
-                assertNotNull(libraryService.getAllMembers(), "LibraryService.getAllMembers should not return null");
-                assertNotNull(libraryService.getCurrentBorrowings(), "LibraryService.getCurrentBorrowings should not return null");
-                assertNotNull(libraryService.getOverdueBorrowings(), "LibraryService.getOverdueBorrowings should not return null");
-                assertNotNull(libraryService.getAvailableBooks(), "LibraryService.getAvailableBooks should not return null");
-                assertNotNull(libraryService.getActiveMembers(), "LibraryService.getActiveMembers should not return null");
+            assertNotNull(libraryService.getAllBooks(), "LibraryService.getAllBooks should not return null");
+            assertNotNull(libraryService.getAllMembers(), "LibraryService.getAllMembers should not return null");
+            assertNotNull(libraryService.getCurrentBorrowings(), "LibraryService.getCurrentBorrowings should not return null");
+            assertNotNull(libraryService.getOverdueBorrowings(), "LibraryService.getOverdueBorrowings should not return null");
+            assertNotNull(libraryService.getAvailableBooks(), "LibraryService.getAvailableBooks should not return null");
+            assertNotNull(libraryService.getActiveMembers(), "LibraryService.getActiveMembers should not return null");
             } catch (Exception e) {
                 System.out.println("Note: Core functionality tests skipped due to database connection issues");
             }
             
             // Verify search functionality (will return empty lists without database)
             try {
-                assertNotNull(libraryService.searchBooksByTitle(""), "LibraryService.searchBooksByTitle should not return null");
-                assertNotNull(libraryService.searchBooksByAuthor(""), "LibraryService.searchBooksByAuthor should not return null");
-                assertNotNull(libraryService.searchBooksByGenre(""), "LibraryService.searchBooksByGenre should not return null");
-                assertNotNull(libraryService.searchMembersByName(""), "LibraryService.searchMembersByName should not return null");
+            assertNotNull(libraryService.searchBooksByTitle(""), "LibraryService.searchBooksByTitle should not return null");
+            assertNotNull(libraryService.searchBooksByAuthor(""), "LibraryService.searchBooksByAuthor should not return null");
+            assertNotNull(libraryService.searchBooksByGenre(""), "LibraryService.searchBooksByGenre should not return null");
+            assertNotNull(libraryService.searchMembersByName(""), "LibraryService.searchMembersByName should not return null");
             } catch (Exception e) {
                 System.out.println("Note: Search functionality tests skipped due to database connection issues");
             }
