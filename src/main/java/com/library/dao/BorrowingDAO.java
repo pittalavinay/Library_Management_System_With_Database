@@ -79,36 +79,30 @@ public class BorrowingDAO {
             return false;
         }
 
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(INSERT_BORROWING, Statement.RETURN_GENERATED_KEYS);
-            
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(INSERT_BORROWING, Statement.RETURN_GENERATED_KEYS)) {
+
             pstmt.setInt(1, borrowing.getBookId());
             pstmt.setInt(2, borrowing.getMemberId());
             pstmt.setObject(3, borrowing.getBorrowDate());
             pstmt.setObject(4, borrowing.getDueDate());
             pstmt.setString(5, borrowing.getStatus().name());
-            
+
             int affectedRows = pstmt.executeUpdate();
-            
+
             if (affectedRows > 0) {
-                ResultSet rs = pstmt.getGeneratedKeys();
-                if (rs.next()) {
-                    borrowing.setBorrowingId(rs.getInt(1));
+                try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        borrowing.setBorrowingId(rs.getInt(1));
+                    }
                 }
                 DatabaseConnection.commit(connection);
                 System.out.println("Borrowing added successfully: ID " + borrowing.getBorrowingId());
                 return true;
             }
-            
+
         } catch (SQLException e) {
-            DatabaseConnection.rollback(connection);
             System.err.println("Error adding borrowing: " + e.getMessage());
-        } finally {
-            closeResources(pstmt, connection);
         }
         return false;
     }
@@ -120,24 +114,16 @@ public class BorrowingDAO {
      * @return Optional containing borrowing if found
      */
     public Optional<Borrowing> getBorrowingById(int borrowingId) {
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(SELECT_BY_ID);
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SELECT_BY_ID)) {
             pstmt.setInt(1, borrowingId);
-            rs = pstmt.executeQuery();
-            
-            if (rs.next()) {
-                return Optional.of(mapResultSetToBorrowing(rs));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapResultSetToBorrowing(rs));
+                }
             }
-            
         } catch (SQLException e) {
             System.err.println("Error retrieving borrowing by ID " + borrowingId + ": " + e.getMessage());
-        } finally {
-            closeResources(rs, pstmt, connection);
         }
         return Optional.empty();
     }
@@ -149,25 +135,16 @@ public class BorrowingDAO {
      */
     public List<Borrowing> getAllBorrowings() {
         List<Borrowing> borrowings = new ArrayList<>();
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(SELECT_ALL);
-            rs = pstmt.executeQuery();
-            
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SELECT_ALL);
+             ResultSet rs = pstmt.executeQuery()) {
             while (rs.next()) {
                 borrowings.add(mapResultSetToBorrowing(rs));
             }
-            
         } catch (SQLException e) {
             System.err.println("Error retrieving all borrowings: " + e.getMessage());
         } catch (Exception e) {
             System.err.println("Unexpected error retrieving borrowings: " + e.getMessage());
-        } finally {
-            closeResources(rs, pstmt, connection);
         }
         return borrowings;
     }
@@ -180,24 +157,16 @@ public class BorrowingDAO {
      */
     public List<Borrowing> getBorrowingsByMemberId(int memberId) {
         List<Borrowing> borrowings = new ArrayList<>();
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(SELECT_BY_MEMBER_ID);
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SELECT_BY_MEMBER_ID)) {
             pstmt.setInt(1, memberId);
-            rs = pstmt.executeQuery();
-            
-            while (rs.next()) {
-                borrowings.add(mapResultSetToBorrowing(rs));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    borrowings.add(mapResultSetToBorrowing(rs));
+                }
             }
-            
         } catch (SQLException e) {
             System.err.println("Error retrieving borrowings for member ID " + memberId + ": " + e.getMessage());
-        } finally {
-            closeResources(rs, pstmt, connection);
         }
         return borrowings;
     }
@@ -210,24 +179,16 @@ public class BorrowingDAO {
      */
     public List<Borrowing> getBorrowingsByBookId(int bookId) {
         List<Borrowing> borrowings = new ArrayList<>();
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(SELECT_BY_BOOK_ID);
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SELECT_BY_BOOK_ID)) {
             pstmt.setInt(1, bookId);
-            rs = pstmt.executeQuery();
-            
-            while (rs.next()) {
-                borrowings.add(mapResultSetToBorrowing(rs));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    borrowings.add(mapResultSetToBorrowing(rs));
+                }
             }
-            
         } catch (SQLException e) {
             System.err.println("Error retrieving borrowings for book ID " + bookId + ": " + e.getMessage());
-        } finally {
-            closeResources(rs, pstmt, connection);
         }
         return borrowings;
     }
@@ -239,23 +200,14 @@ public class BorrowingDAO {
      */
     public List<Borrowing> getCurrentBorrowings() {
         List<Borrowing> borrowings = new ArrayList<>();
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(SELECT_CURRENT_BORROWINGS);
-            rs = pstmt.executeQuery();
-            
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SELECT_CURRENT_BORROWINGS);
+             ResultSet rs = pstmt.executeQuery()) {
             while (rs.next()) {
                 borrowings.add(mapResultSetToBorrowing(rs));
             }
-            
         } catch (SQLException e) {
             System.err.println("Error retrieving current borrowings: " + e.getMessage());
-        } finally {
-            closeResources(rs, pstmt, connection);
         }
         return borrowings;
     }
@@ -267,24 +219,16 @@ public class BorrowingDAO {
      */
     public List<Borrowing> getOverdueBorrowings() {
         List<Borrowing> borrowings = new ArrayList<>();
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(SELECT_OVERDUE_BORROWINGS);
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SELECT_OVERDUE_BORROWINGS)) {
             pstmt.setObject(1, LocalDate.now());
-            rs = pstmt.executeQuery();
-            
-            while (rs.next()) {
-                borrowings.add(mapResultSetToBorrowing(rs));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    borrowings.add(mapResultSetToBorrowing(rs));
+                }
             }
-            
         } catch (SQLException e) {
             System.err.println("Error retrieving overdue borrowings: " + e.getMessage());
-        } finally {
-            closeResources(rs, pstmt, connection);
         }
         return borrowings;
     }
@@ -297,24 +241,16 @@ public class BorrowingDAO {
      */
     public List<Borrowing> getBorrowingsByStatus(Borrowing.BorrowingStatus status) {
         List<Borrowing> borrowings = new ArrayList<>();
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(SELECT_BY_STATUS);
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SELECT_BY_STATUS)) {
             pstmt.setString(1, status.name());
-            rs = pstmt.executeQuery();
-            
-            while (rs.next()) {
-                borrowings.add(mapResultSetToBorrowing(rs));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    borrowings.add(mapResultSetToBorrowing(rs));
+                }
             }
-            
         } catch (SQLException e) {
             System.err.println("Error retrieving borrowings by status " + status + ": " + e.getMessage());
-        } finally {
-            closeResources(rs, pstmt, connection);
         }
         return borrowings;
     }
@@ -328,29 +264,22 @@ public class BorrowingDAO {
      * @return true if successful, false otherwise
      */
     public boolean returnBook(int borrowingId, LocalDate returnDate, BigDecimal fineAmount) {
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(UPDATE_RETURN_DATE);
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(UPDATE_RETURN_DATE)) {
             pstmt.setObject(1, returnDate);
             pstmt.setBigDecimal(2, fineAmount);
             pstmt.setInt(3, borrowingId);
-            
+
             int affectedRows = pstmt.executeUpdate();
-            
+
             if (affectedRows > 0) {
                 DatabaseConnection.commit(connection);
                 System.out.println("Book returned successfully: borrowing ID " + borrowingId);
                 return true;
             }
-            
+
         } catch (SQLException e) {
-            DatabaseConnection.rollback(connection);
             System.err.println("Error returning book for borrowing ID " + borrowingId + ": " + e.getMessage());
-        } finally {
-            closeResources(pstmt, connection);
         }
         return false;
     }
@@ -363,28 +292,21 @@ public class BorrowingDAO {
      * @return true if successful, false otherwise
      */
     public boolean updateStatus(int borrowingId, Borrowing.BorrowingStatus status) {
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(UPDATE_STATUS);
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(UPDATE_STATUS)) {
             pstmt.setString(1, status.name());
             pstmt.setInt(2, borrowingId);
-            
+
             int affectedRows = pstmt.executeUpdate();
-            
+
             if (affectedRows > 0) {
                 DatabaseConnection.commit(connection);
                 System.out.println("Borrowing status updated: ID " + borrowingId + " -> " + status);
                 return true;
             }
-            
+
         } catch (SQLException e) {
-            DatabaseConnection.rollback(connection);
             System.err.println("Error updating borrowing status for ID " + borrowingId + ": " + e.getMessage());
-        } finally {
-            closeResources(pstmt, connection);
         }
         return false;
     }
@@ -396,18 +318,12 @@ public class BorrowingDAO {
      */
     public List<Borrowing> getBorrowingsWithDetails() {
         List<Borrowing> borrowings = new ArrayList<>();
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(SELECT_BORROWINGS_WITH_DETAILS);
-            rs = pstmt.executeQuery();
-            
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SELECT_BORROWINGS_WITH_DETAILS);
+             ResultSet rs = pstmt.executeQuery()) {
             while (rs.next()) {
                 Borrowing borrowing = mapResultSetToBorrowing(rs);
-                
+
                 // Set book details
                 Book book = new Book();
                 book.setBookId(rs.getInt("book_id"));
@@ -415,7 +331,7 @@ public class BorrowingDAO {
                 book.setTitle(rs.getString("title"));
                 book.setAuthor(rs.getString("author"));
                 borrowing.setBook(book);
-                
+
                 // Set member details
                 Member member = new Member();
                 member.setMemberId(rs.getInt("member_id"));
@@ -424,14 +340,11 @@ public class BorrowingDAO {
                 member.setLastName(rs.getString("last_name"));
                 member.setEmail(rs.getString("email"));
                 borrowing.setMember(member);
-                
+
                 borrowings.add(borrowing);
             }
-            
         } catch (SQLException e) {
             System.err.println("Error retrieving borrowings with details: " + e.getMessage());
-        } finally {
-            closeResources(rs, pstmt, connection);
         }
         return borrowings;
     }
@@ -447,14 +360,9 @@ public class BorrowingDAO {
             System.err.println("Invalid borrowing data for update: " + borrowing);
             return false;
         }
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(UPDATE_BORROWING)) {
 
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(UPDATE_BORROWING);
-            
             pstmt.setInt(1, borrowing.getBookId());
             pstmt.setInt(2, borrowing.getMemberId());
             pstmt.setObject(3, borrowing.getBorrowDate());
@@ -463,20 +371,17 @@ public class BorrowingDAO {
             pstmt.setString(6, borrowing.getStatus().name());
             pstmt.setBigDecimal(7, borrowing.getFineAmount());
             pstmt.setInt(8, borrowing.getBorrowingId());
-            
+
             int affectedRows = pstmt.executeUpdate();
-            
+
             if (affectedRows > 0) {
                 DatabaseConnection.commit(connection);
                 System.out.println("Borrowing updated successfully: ID " + borrowing.getBorrowingId());
                 return true;
             }
-            
+
         } catch (SQLException e) {
-            DatabaseConnection.rollback(connection);
             System.err.println("Error updating borrowing: " + e.getMessage());
-        } finally {
-            closeResources(pstmt, connection);
         }
         return false;
     }
@@ -488,27 +393,20 @@ public class BorrowingDAO {
      * @return true if successful, false otherwise
      */
     public boolean deleteBorrowing(int borrowingId) {
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(DELETE_BORROWING);
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(DELETE_BORROWING)) {
             pstmt.setInt(1, borrowingId);
-            
+
             int affectedRows = pstmt.executeUpdate();
-            
+
             if (affectedRows > 0) {
                 DatabaseConnection.commit(connection);
                 System.out.println("Borrowing deleted successfully: ID " + borrowingId);
                 return true;
             }
-            
+
         } catch (SQLException e) {
-            DatabaseConnection.rollback(connection);
             System.err.println("Error deleting borrowing ID " + borrowingId + ": " + e.getMessage());
-        } finally {
-            closeResources(pstmt, connection);
         }
         return false;
     }

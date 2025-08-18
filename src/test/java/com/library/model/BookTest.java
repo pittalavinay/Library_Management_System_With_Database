@@ -44,7 +44,10 @@ public class BookTest {
         assertTrue(validBook.isAvailable(), "Book should be available");
         assertTrue(validBook.canBorrow(), "Book should be borrowable");
         
-        validBook.setAvailableCopies(0);
+        // Borrow all copies to make book unavailable
+        validBook.borrow();
+        validBook.borrow();
+        validBook.borrow();
         assertTrue(!validBook.isAvailable(), "Book should not be available when no copies");
         assertTrue(!validBook.canBorrow(), "Book should not be borrowable when no copies");
     }
@@ -58,7 +61,10 @@ public class BookTest {
 
     public void testBookBorrowingNoCopies() {
         setUp();
-        validBook.setAvailableCopies(0);
+        // Borrow all copies first
+        validBook.borrow();
+        validBook.borrow();
+        validBook.borrow();
         try {
             validBook.borrow();
             assertTrue(false, "Should throw exception when no copies available");
@@ -69,7 +75,8 @@ public class BookTest {
 
     public void testBookReturn() {
         setUp();
-        validBook.setAvailableCopies(1);
+        // Borrow one copy first
+        validBook.borrow();
         int initialAvailable = validBook.getAvailableCopies();
         validBook.returnBook();
         assertTrue(validBook.getAvailableCopies() == (initialAvailable + 1), "Available copies should increase");
@@ -77,7 +84,7 @@ public class BookTest {
 
     public void testBookReturnAllCopiesAvailable() {
         setUp();
-        validBook.setAvailableCopies(validBook.getTotalCopies());
+        // All copies are already available, so trying to return should throw exception
         try {
             validBook.returnBook();
             assertTrue(false, "Should throw exception when all copies available");
@@ -89,7 +96,9 @@ public class BookTest {
     public void testBorrowedCopies() {
         setUp();
         assertTrue(validBook.getBorrowedCopies() == 0, "Borrowed copies should be 0 initially");
-        validBook.setAvailableCopies(1);
+        // Borrow 2 copies
+        validBook.borrow();
+        validBook.borrow();
         assertTrue(validBook.getBorrowedCopies() == 2, "Borrowed copies should be 2");
     }
 

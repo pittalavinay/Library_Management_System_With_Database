@@ -340,24 +340,23 @@ class BookDAOTest {
     @DisplayName("Should handle book business logic correctly")
     void testBookBusinessLogic() {
         // Arrange
-        Book book = new Book("1234567890123", "Test Book", "Test Author");
-        book.setTotalCopies(3);
-        book.setAvailableCopies(2);
+        Book book = new Book("1234567890123", "Test Book", "Test Author", 
+                           "Test Publisher", 2023, "Fiction", 3);
         
         // Act & Assert
         assertTrue(book.isAvailable());
-        assertEquals(1, book.getBorrowedCopies());
+        assertEquals(0, book.getBorrowedCopies());
         assertTrue(book.canBorrow());
         
         // Test borrowing
         book.borrow();
-        assertEquals(1, book.getAvailableCopies());
-        assertEquals(2, book.getBorrowedCopies());
+        assertEquals(2, book.getAvailableCopies());
+        assertEquals(1, book.getBorrowedCopies());
         
         // Test returning
         book.returnBook();
-        assertEquals(2, book.getAvailableCopies());
-        assertEquals(1, book.getBorrowedCopies());
+        assertEquals(3, book.getAvailableCopies());
+        assertEquals(0, book.getBorrowedCopies());
     }
 
     @Test
@@ -366,7 +365,7 @@ class BookDAOTest {
         // Arrange
         Book book = new Book("1234567890123", "Test Book", "Test Author");
         book.setTotalCopies(1);
-        book.setAvailableCopies(0);
+        book.borrow(); // Borrow the only copy to make it unavailable
         
         // Act & Assert
         assertFalse(book.isAvailable());
@@ -376,7 +375,7 @@ class BookDAOTest {
         assertThrows(IllegalStateException.class, () -> book.borrow());
         
         // Test returning when all copies are available
-        book.setAvailableCopies(1);
+        book.returnBook(); // Return the copy
         assertThrows(IllegalStateException.class, () -> book.returnBook());
     }
 }

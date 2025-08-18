@@ -67,13 +67,9 @@ public class MemberDAO {
             return false;
         }
 
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(INSERT_MEMBER, Statement.RETURN_GENERATED_KEYS);
-            
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(INSERT_MEMBER, Statement.RETURN_GENERATED_KEYS)) {
+
             pstmt.setString(1, member.getMemberCode());
             pstmt.setString(2, member.getFirstName());
             pstmt.setString(3, member.getLastName());
@@ -83,24 +79,22 @@ public class MemberDAO {
             pstmt.setObject(7, member.getMembershipDate());
             pstmt.setString(8, member.getMembershipStatus().name());
             pstmt.setInt(9, member.getMaxBooksAllowed());
-            
+
             int affectedRows = pstmt.executeUpdate();
-            
+
             if (affectedRows > 0) {
-                ResultSet rs = pstmt.getGeneratedKeys();
-                if (rs.next()) {
-                    member.setMemberId(rs.getInt(1));
+                try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        member.setMemberId(rs.getInt(1));
+                    }
                 }
                 DatabaseConnection.commit(connection);
                 System.out.println("Member added successfully: " + member.getFullName());
                 return true;
             }
-            
+
         } catch (SQLException e) {
-            DatabaseConnection.rollback(connection);
             System.err.println("Error adding member: " + e.getMessage());
-        } finally {
-            closeResources(pstmt, connection);
         }
         return false;
     }
@@ -112,24 +106,16 @@ public class MemberDAO {
      * @return Optional containing member if found
      */
     public Optional<Member> getMemberById(int memberId) {
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(SELECT_BY_ID);
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SELECT_BY_ID)) {
             pstmt.setInt(1, memberId);
-            rs = pstmt.executeQuery();
-            
-            if (rs.next()) {
-                return Optional.of(mapResultSetToMember(rs));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapResultSetToMember(rs));
+                }
             }
-            
         } catch (SQLException e) {
             System.err.println("Error retrieving member by ID " + memberId + ": " + e.getMessage());
-        } finally {
-            closeResources(rs, pstmt, connection);
         }
         return Optional.empty();
     }
@@ -141,24 +127,16 @@ public class MemberDAO {
      * @return Optional containing member if found
      */
     public Optional<Member> getMemberByCode(String memberCode) {
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(SELECT_BY_CODE);
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SELECT_BY_CODE)) {
             pstmt.setString(1, memberCode);
-            rs = pstmt.executeQuery();
-            
-            if (rs.next()) {
-                return Optional.of(mapResultSetToMember(rs));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapResultSetToMember(rs));
+                }
             }
-            
         } catch (SQLException e) {
             System.err.println("Error retrieving member by code " + memberCode + ": " + e.getMessage());
-        } finally {
-            closeResources(rs, pstmt, connection);
         }
         return Optional.empty();
     }
@@ -170,24 +148,16 @@ public class MemberDAO {
      * @return Optional containing member if found
      */
     public Optional<Member> getMemberByEmail(String email) {
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(SELECT_BY_EMAIL);
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SELECT_BY_EMAIL)) {
             pstmt.setString(1, email);
-            rs = pstmt.executeQuery();
-            
-            if (rs.next()) {
-                return Optional.of(mapResultSetToMember(rs));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapResultSetToMember(rs));
+                }
             }
-            
         } catch (SQLException e) {
             System.err.println("Error retrieving member by email " + email + ": " + e.getMessage());
-        } finally {
-            closeResources(rs, pstmt, connection);
         }
         return Optional.empty();
     }
@@ -199,25 +169,16 @@ public class MemberDAO {
      */
     public List<Member> getAllMembers() {
         List<Member> members = new ArrayList<>();
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(SELECT_ALL);
-            rs = pstmt.executeQuery();
-            
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SELECT_ALL);
+             ResultSet rs = pstmt.executeQuery()) {
             while (rs.next()) {
                 members.add(mapResultSetToMember(rs));
             }
-            
         } catch (SQLException e) {
             System.err.println("Error retrieving all members: " + e.getMessage());
         } catch (Exception e) {
             System.err.println("Unexpected error retrieving members: " + e.getMessage());
-        } finally {
-            closeResources(rs, pstmt, connection);
         }
         return members;
     }
@@ -233,14 +194,9 @@ public class MemberDAO {
             System.err.println("Invalid member data for update: " + member);
             return false;
         }
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(UPDATE_MEMBER)) {
 
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(UPDATE_MEMBER);
-            
             pstmt.setString(1, member.getMemberCode());
             pstmt.setString(2, member.getFirstName());
             pstmt.setString(3, member.getLastName());
@@ -251,20 +207,17 @@ public class MemberDAO {
             pstmt.setString(8, member.getMembershipStatus().name());
             pstmt.setInt(9, member.getMaxBooksAllowed());
             pstmt.setInt(10, member.getMemberId());
-            
+
             int affectedRows = pstmt.executeUpdate();
-            
+
             if (affectedRows > 0) {
                 DatabaseConnection.commit(connection);
                 System.out.println("Member updated successfully: " + member.getFullName());
                 return true;
             }
-            
+
         } catch (SQLException e) {
-            DatabaseConnection.rollback(connection);
             System.err.println("Error updating member: " + e.getMessage());
-        } finally {
-            closeResources(pstmt, connection);
         }
         return false;
     }
@@ -276,27 +229,20 @@ public class MemberDAO {
      * @return true if successful, false otherwise
      */
     public boolean deleteMember(int memberId) {
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(DELETE_MEMBER);
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(DELETE_MEMBER)) {
             pstmt.setInt(1, memberId);
-            
+
             int affectedRows = pstmt.executeUpdate();
-            
+
             if (affectedRows > 0) {
                 DatabaseConnection.commit(connection);
                 System.out.println("Member deleted successfully: ID " + memberId);
                 return true;
             }
-            
+
         } catch (SQLException e) {
-            DatabaseConnection.rollback(connection);
             System.err.println("Error deleting member ID " + memberId + ": " + e.getMessage());
-        } finally {
-            closeResources(pstmt, connection);
         }
         return false;
     }
@@ -309,25 +255,17 @@ public class MemberDAO {
      */
     public List<Member> searchByName(String name) {
         List<Member> members = new ArrayList<>();
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(SEARCH_BY_NAME);
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SEARCH_BY_NAME)) {
             pstmt.setString(1, "%" + name + "%");
             pstmt.setString(2, "%" + name + "%");
-            rs = pstmt.executeQuery();
-            
-            while (rs.next()) {
-                members.add(mapResultSetToMember(rs));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    members.add(mapResultSetToMember(rs));
+                }
             }
-            
         } catch (SQLException e) {
             System.err.println("Error searching members by name: " + e.getMessage());
-        } finally {
-            closeResources(rs, pstmt, connection);
         }
         return members;
     }
@@ -339,23 +277,14 @@ public class MemberDAO {
      */
     public List<Member> getActiveMembers() {
         List<Member> members = new ArrayList<>();
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(SELECT_ACTIVE_MEMBERS);
-            rs = pstmt.executeQuery();
-            
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SELECT_ACTIVE_MEMBERS);
+             ResultSet rs = pstmt.executeQuery()) {
             while (rs.next()) {
                 members.add(mapResultSetToMember(rs));
             }
-            
         } catch (SQLException e) {
             System.err.println("Error retrieving active members: " + e.getMessage());
-        } finally {
-            closeResources(rs, pstmt, connection);
         }
         return members;
     }
@@ -368,28 +297,21 @@ public class MemberDAO {
      * @return true if successful, false otherwise
      */
     public boolean updateMembershipStatus(int memberId, Member.MembershipStatus status) {
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(UPDATE_MEMBERSHIP_STATUS);
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(UPDATE_MEMBERSHIP_STATUS)) {
             pstmt.setString(1, status.name());
             pstmt.setInt(2, memberId);
-            
+
             int affectedRows = pstmt.executeUpdate();
-            
+
             if (affectedRows > 0) {
                 DatabaseConnection.commit(connection);
                 System.out.println("Membership status updated for member ID " + memberId + ": " + status);
                 return true;
             }
-            
+
         } catch (SQLException e) {
-            DatabaseConnection.rollback(connection);
             System.err.println("Error updating membership status for member ID " + memberId + ": " + e.getMessage());
-        } finally {
-            closeResources(pstmt, connection);
         }
         return false;
     }
@@ -401,24 +323,16 @@ public class MemberDAO {
      * @return true if exists, false otherwise
      */
     public boolean isMemberCodeExists(String memberCode) {
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(CHECK_MEMBER_CODE_EXISTS);
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(CHECK_MEMBER_CODE_EXISTS)) {
             pstmt.setString(1, memberCode);
-            rs = pstmt.executeQuery();
-            
-            if (rs.next()) {
-                return rs.getInt(1) > 0;
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
             }
-            
         } catch (SQLException e) {
             System.err.println("Error checking member code existence: " + e.getMessage());
-        } finally {
-            closeResources(rs, pstmt, connection);
         }
         return false;
     }
@@ -430,24 +344,16 @@ public class MemberDAO {
      * @return true if exists, false otherwise
      */
     public boolean isEmailExists(String email) {
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(CHECK_EMAIL_EXISTS);
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(CHECK_EMAIL_EXISTS)) {
             pstmt.setString(1, email);
-            rs = pstmt.executeQuery();
-            
-            if (rs.next()) {
-                return rs.getInt(1) > 0;
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
             }
-            
         } catch (SQLException e) {
             System.err.println("Error checking email existence: " + e.getMessage());
-        } finally {
-            closeResources(rs, pstmt, connection);
         }
         return false;
     }
@@ -481,37 +387,5 @@ public class MemberDAO {
      * @param pstmt PreparedStatement
      * @param connection Connection
      */
-    private void closeResources(ResultSet rs, PreparedStatement pstmt, Connection connection) {
-        if (rs != null) {
-            try {
-                rs.close();
-            } catch (SQLException e) {
-                System.err.println("Error closing ResultSet: " + e.getMessage());
-            }
-        }
-        closeResources(pstmt, connection);
-    }
-
-    /**
-     * Close database resources.
-     * 
-     * @param pstmt PreparedStatement
-     * @param connection Connection
-     */
-    private void closeResources(PreparedStatement pstmt, Connection connection) {
-        if (pstmt != null) {
-            try {
-                pstmt.close();
-            } catch (SQLException e) {
-                System.err.println("Error closing PreparedStatement: " + e.getMessage());
-            }
-        }
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                System.err.println("Error closing PreparedStatement: " + e.getMessage());
-            }
-        }
-    }
+    // closeResources helpers removed due to try-with-resources migration
 }

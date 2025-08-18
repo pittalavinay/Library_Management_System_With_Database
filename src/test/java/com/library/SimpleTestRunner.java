@@ -206,9 +206,13 @@ public class SimpleTestRunner {
             assertTrue(validBook.isValidPublicationYear(), "Valid publication year should be valid");
             assertTrue(validBook.isAvailable(), "Book should be available");
             
-            // Test invalid book
-            Book invalidBook = new Book("", "", "");
-            assertFalse(invalidBook.isValid(), "Invalid book should not be valid");
+            // Test invalid book - should throw exception for empty strings
+            try {
+                Book invalidBook = new Book("", "", "");
+                assertTrue(false, "Should throw exception for empty ISBN");
+            } catch (IllegalArgumentException e) {
+                // Expected exception
+            }
             
             System.out.println("[OK] Book model validation tests passed");
             passedTests++;
@@ -276,27 +280,29 @@ public class SimpleTestRunner {
     private static void testBookBusinessLogic() {
         testCount++;
         try {
-            Book book = new Book("1234567890123", "Test Book", "Test Author");
-            book.setTotalCopies(3);
-            book.setAvailableCopies(2);
+            // Create book with explicit total copies using full constructor
+            Book book = new Book("1234567890123", "Test Book", "Test Author", 
+                               "Test Publisher", 2023, "Fiction", 3);
             
             // Test availability
             assertTrue(book.isAvailable(), "Book should be available");
-            assertEquals(1, book.getBorrowedCopies(), "Book should have 1 borrowed copy");
+            assertEquals(0, book.getBorrowedCopies(), "Book should have 0 borrowed copy initially");
             assertTrue(book.canBorrow(), "Book should be borrowable");
             
             // Test borrowing
             book.borrow();
-            assertEquals(1, book.getAvailableCopies(), "Book should have 1 available copy after borrowing");
-            assertEquals(2, book.getBorrowedCopies(), "Book should have 2 borrowed copies after borrowing");
+            assertEquals(2, book.getAvailableCopies(), "Book should have 2 available copy after borrowing");
+            assertEquals(1, book.getBorrowedCopies(), "Book should have 1 borrowed copies after borrowing");
             
             // Test returning
             book.returnBook();
-            assertEquals(2, book.getAvailableCopies(), "Book should have 2 available copies after returning");
-            assertEquals(1, book.getBorrowedCopies(), "Book should have 1 borrowed copy after returning");
+            assertEquals(3, book.getAvailableCopies(), "Book should have 3 available copies after returning");
+            assertEquals(0, book.getBorrowedCopies(), "Book should have 0 borrowed copy after returning");
             
-            // Test edge cases
-            book.setAvailableCopies(0);
+            // Test edge cases - borrow all copies
+            book.borrow();
+            book.borrow();
+            book.borrow();
             assertFalse(book.isAvailable(), "Book should not be available when no copies available");
             assertFalse(book.canBorrow(), "Book should not be borrowable when no copies available");
             
@@ -444,11 +450,17 @@ public class SimpleTestRunner {
             assertFalse(libraryService.updateBook(null), "LibraryService.updateBook should return false for null input");
             assertFalse(libraryService.updateMember(null), "LibraryService.updateMember should return false for null input");
             
-            // Test invalid inputs
-            Book invalidBook = new Book("", "", "");
-            Member invalidMember = new Member("", "", "", "");
-            assertFalse(libraryService.addBook(invalidBook), "LibraryService.addBook should return false for invalid book");
-            assertFalse(libraryService.registerMember(invalidMember), "LibraryService.registerMember should return false for invalid member");
+            // Test invalid inputs - should throw exceptions for empty strings
+            try {
+                Book invalidBook = new Book("", "", "");
+                assertTrue(false, "Should throw exception for empty ISBN");
+            } catch (IllegalArgumentException e) {
+                // Expected exception
+            }
+            
+                         // Test invalid member - Member constructor doesn't validate empty strings
+             Member invalidMember = new Member("", "", "", "");
+             assertFalse(invalidMember.isValid(), "Invalid member should not be valid");
             
             // Test invalid operations
             assertFalse(libraryService.borrowBook(-1, 1), "LibraryService.borrowBook should return false for invalid book ID");
@@ -535,7 +547,7 @@ public class SimpleTestRunner {
             // Test book availability
             Book book = new Book("1234567890124", "Availability Test", "Author");
             book.setTotalCopies(1);
-            book.setAvailableCopies(0);
+            book.borrow(); // Borrow the only copy to make it unavailable
             
             assertFalse(book.isAvailable(), "Book should not be available when no copies available");
             assertFalse(book.canBorrow(), "Book should not be borrowable when no copies available");

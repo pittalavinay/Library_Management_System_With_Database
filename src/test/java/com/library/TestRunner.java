@@ -143,27 +143,28 @@ class TestRunner {
     @Order(6)
     @DisplayName("Test Book business logic")
     void testBookBusinessLogic() {
-        Book book = new Book("1234567890123", "Test Book", "Test Author");
-        book.setTotalCopies(3);
-        book.setAvailableCopies(2);
+        Book book = new Book("1234567890123", "Test Book", "Test Author", 
+                           "Test Publisher", 2023, "Fiction", 3);
         
         // Test availability
         assertTrue(book.isAvailable());
-        assertEquals(1, book.getBorrowedCopies());
+        assertEquals(0, book.getBorrowedCopies());
         assertTrue(book.canBorrow());
         
         // Test borrowing
         book.borrow();
-        assertEquals(1, book.getAvailableCopies());
-        assertEquals(2, book.getBorrowedCopies());
-        
-        // Test returning
-        book.returnBook();
         assertEquals(2, book.getAvailableCopies());
         assertEquals(1, book.getBorrowedCopies());
         
-        // Test edge cases
-        book.setAvailableCopies(0);
+        // Test returning
+        book.returnBook();
+        assertEquals(3, book.getAvailableCopies());
+        assertEquals(0, book.getBorrowedCopies());
+        
+        // Test edge cases - borrow all copies
+        book.borrow();
+        book.borrow();
+        book.borrow();
         assertFalse(book.isAvailable());
         assertFalse(book.canBorrow());
         assertThrows(IllegalStateException.class, () -> book.borrow());
@@ -362,7 +363,7 @@ class TestRunner {
         // Test book availability
         Book book = new Book("1234567890124", "Availability Test", "Author");
         book.setTotalCopies(1);
-        book.setAvailableCopies(0);
+        book.borrow(); // Borrow the only copy to make it unavailable
         
         assertFalse(book.isAvailable());
         assertFalse(book.canBorrow());

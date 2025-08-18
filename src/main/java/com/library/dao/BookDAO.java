@@ -62,13 +62,9 @@ public class BookDAO {
             return false;
         }
 
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(INSERT_BOOK, Statement.RETURN_GENERATED_KEYS);
-            
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(INSERT_BOOK, Statement.RETURN_GENERATED_KEYS)) {
+
             pstmt.setString(1, book.getIsbn());
             pstmt.setString(2, book.getTitle());
             pstmt.setString(3, book.getAuthor());
@@ -77,24 +73,22 @@ public class BookDAO {
             pstmt.setString(6, book.getGenre());
             pstmt.setInt(7, book.getTotalCopies());
             pstmt.setInt(8, book.getAvailableCopies());
-            
+
             int affectedRows = pstmt.executeUpdate();
-            
+
             if (affectedRows > 0) {
-                ResultSet rs = pstmt.getGeneratedKeys();
-                if (rs.next()) {
-                    book.setBookId(rs.getInt(1));
+                try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        book.setBookId(rs.getInt(1));
+                    }
                 }
                 DatabaseConnection.commit(connection);
                 System.out.println("Book added successfully: " + book.getTitle());
                 return true;
             }
-            
+
         } catch (SQLException e) {
-            DatabaseConnection.rollback(connection);
             System.err.println("Error adding book: " + e.getMessage());
-        } finally {
-            closeResources(pstmt, connection);
         }
         return false;
     }
@@ -106,24 +100,16 @@ public class BookDAO {
      * @return Optional containing book if found
      */
     public Optional<Book> getBookById(int bookId) {
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(SELECT_BY_ID);
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SELECT_BY_ID)) {
             pstmt.setInt(1, bookId);
-            rs = pstmt.executeQuery();
-            
-            if (rs.next()) {
-                return Optional.of(mapResultSetToBook(rs));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapResultSetToBook(rs));
+                }
             }
-            
         } catch (SQLException e) {
             System.err.println("Error retrieving book by ID " + bookId + ": " + e.getMessage());
-        } finally {
-            closeResources(rs, pstmt, connection);
         }
         return Optional.empty();
     }
@@ -135,24 +121,16 @@ public class BookDAO {
      * @return Optional containing book if found
      */
     public Optional<Book> getBookByIsbn(String isbn) {
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(SELECT_BY_ISBN);
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SELECT_BY_ISBN)) {
             pstmt.setString(1, isbn);
-            rs = pstmt.executeQuery();
-            
-            if (rs.next()) {
-                return Optional.of(mapResultSetToBook(rs));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapResultSetToBook(rs));
+                }
             }
-            
         } catch (SQLException e) {
             System.err.println("Error retrieving book by ISBN " + isbn + ": " + e.getMessage());
-        } finally {
-            closeResources(rs, pstmt, connection);
         }
         return Optional.empty();
     }
@@ -164,25 +142,16 @@ public class BookDAO {
      */
     public List<Book> getAllBooks() {
         List<Book> books = new ArrayList<>();
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(SELECT_ALL);
-            rs = pstmt.executeQuery();
-            
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SELECT_ALL);
+             ResultSet rs = pstmt.executeQuery()) {
             while (rs.next()) {
                 books.add(mapResultSetToBook(rs));
             }
-            
         } catch (SQLException e) {
             System.err.println("Error retrieving all books: " + e.getMessage());
         } catch (Exception e) {
             System.err.println("Unexpected error retrieving books: " + e.getMessage());
-        } finally {
-            closeResources(rs, pstmt, connection);
         }
         return books;
     }
@@ -199,13 +168,9 @@ public class BookDAO {
             return false;
         }
 
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(UPDATE_BOOK);
-            
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(UPDATE_BOOK)) {
+
             pstmt.setString(1, book.getIsbn());
             pstmt.setString(2, book.getTitle());
             pstmt.setString(3, book.getAuthor());
@@ -215,20 +180,17 @@ public class BookDAO {
             pstmt.setInt(7, book.getTotalCopies());
             pstmt.setInt(8, book.getAvailableCopies());
             pstmt.setInt(9, book.getBookId());
-            
+
             int affectedRows = pstmt.executeUpdate();
-            
+
             if (affectedRows > 0) {
                 DatabaseConnection.commit(connection);
                 System.out.println("Book updated successfully: " + book.getTitle());
                 return true;
             }
-            
+
         } catch (SQLException e) {
-            DatabaseConnection.rollback(connection);
             System.err.println("Error updating book: " + e.getMessage());
-        } finally {
-            closeResources(pstmt, connection);
         }
         return false;
     }
@@ -240,27 +202,20 @@ public class BookDAO {
      * @return true if successful, false otherwise
      */
     public boolean deleteBook(int bookId) {
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(DELETE_BOOK);
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(DELETE_BOOK)) {
             pstmt.setInt(1, bookId);
-            
+
             int affectedRows = pstmt.executeUpdate();
-            
+
             if (affectedRows > 0) {
                 DatabaseConnection.commit(connection);
                 System.out.println("Book deleted successfully: ID " + bookId);
                 return true;
             }
-            
+
         } catch (SQLException e) {
-            DatabaseConnection.rollback(connection);
             System.err.println("Error deleting book ID " + bookId + ": " + e.getMessage());
-        } finally {
-            closeResources(pstmt, connection);
         }
         return false;
     }
@@ -273,24 +228,16 @@ public class BookDAO {
      */
     public List<Book> searchByTitle(String title) {
         List<Book> books = new ArrayList<>();
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(SEARCH_BY_TITLE);
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SEARCH_BY_TITLE)) {
             pstmt.setString(1, "%" + title + "%");
-            rs = pstmt.executeQuery();
-            
-            while (rs.next()) {
-                books.add(mapResultSetToBook(rs));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    books.add(mapResultSetToBook(rs));
+                }
             }
-            
         } catch (SQLException e) {
             System.err.println("Error searching books by title: " + e.getMessage());
-        } finally {
-            closeResources(rs, pstmt, connection);
         }
         return books;
     }
@@ -303,24 +250,16 @@ public class BookDAO {
      */
     public List<Book> searchByAuthor(String author) {
         List<Book> books = new ArrayList<>();
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(SEARCH_BY_AUTHOR);
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SEARCH_BY_AUTHOR)) {
             pstmt.setString(1, "%" + author + "%");
-            rs = pstmt.executeQuery();
-            
-            while (rs.next()) {
-                books.add(mapResultSetToBook(rs));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    books.add(mapResultSetToBook(rs));
+                }
             }
-            
         } catch (SQLException e) {
             System.err.println("Error searching books by author: " + e.getMessage());
-        } finally {
-            closeResources(rs, pstmt, connection);
         }
         return books;
     }
@@ -333,24 +272,16 @@ public class BookDAO {
      */
     public List<Book> searchByGenre(String genre) {
         List<Book> books = new ArrayList<>();
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(SEARCH_BY_GENRE);
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SEARCH_BY_GENRE)) {
             pstmt.setString(1, "%" + genre + "%");
-            rs = pstmt.executeQuery();
-            
-            while (rs.next()) {
-                books.add(mapResultSetToBook(rs));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    books.add(mapResultSetToBook(rs));
+                }
             }
-            
         } catch (SQLException e) {
             System.err.println("Error searching books by genre: " + e.getMessage());
-        } finally {
-            closeResources(rs, pstmt, connection);
         }
         return books;
     }
@@ -362,23 +293,14 @@ public class BookDAO {
      */
     public List<Book> getAvailableBooks() {
         List<Book> books = new ArrayList<>();
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(SEARCH_AVAILABLE);
-            rs = pstmt.executeQuery();
-            
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SEARCH_AVAILABLE);
+             ResultSet rs = pstmt.executeQuery()) {
             while (rs.next()) {
                 books.add(mapResultSetToBook(rs));
             }
-            
         } catch (SQLException e) {
             System.err.println("Error retrieving available books: " + e.getMessage());
-        } finally {
-            closeResources(rs, pstmt, connection);
         }
         return books;
     }
@@ -391,28 +313,21 @@ public class BookDAO {
      * @return true if successful, false otherwise
      */
     public boolean updateAvailableCopies(int bookId, int availableCopies) {
-        Connection connection = null;
-        PreparedStatement pstmt = null;
-        
-        try {
-            connection = DatabaseConnection.getConnection();
-            pstmt = connection.prepareStatement(UPDATE_AVAILABLE_COPIES);
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(UPDATE_AVAILABLE_COPIES)) {
             pstmt.setInt(1, availableCopies);
             pstmt.setInt(2, bookId);
-            
+
             int affectedRows = pstmt.executeUpdate();
-            
+
             if (affectedRows > 0) {
                 DatabaseConnection.commit(connection);
                 System.out.println("Updated available copies for book ID " + bookId + ": " + availableCopies);
                 return true;
             }
-            
+
         } catch (SQLException e) {
-            DatabaseConnection.rollback(connection);
             System.err.println("Error updating available copies for book ID " + bookId + ": " + e.getMessage());
-        } finally {
-            closeResources(pstmt, connection);
         }
         return false;
     }
@@ -425,16 +340,18 @@ public class BookDAO {
      * @throws SQLException if mapping fails
      */
     private Book mapResultSetToBook(ResultSet rs) throws SQLException {
-        Book book = new Book();
+        // Prefer using validated constructor to avoid insecure states
+        Book book = new Book(
+            rs.getString("isbn"),
+            rs.getString("title"),
+            rs.getString("author"),
+            rs.getString("publisher"),
+            (Integer) rs.getObject("publication_year"),
+            rs.getString("genre"),
+            rs.getInt("total_copies"),
+            rs.getInt("available_copies")
+        );
         book.setBookId(rs.getInt("book_id"));
-        book.setIsbn(rs.getString("isbn"));
-        book.setTitle(rs.getString("title"));
-        book.setAuthor(rs.getString("author"));
-        book.setPublisher(rs.getString("publisher"));
-        book.setPublicationYear(rs.getInt("publication_year"));
-        book.setGenre(rs.getString("genre"));
-        book.setTotalCopies(rs.getInt("total_copies"));
-        book.setAvailableCopies(rs.getInt("available_copies"));
         return book;
     }
 
